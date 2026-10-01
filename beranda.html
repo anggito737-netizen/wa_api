@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Beranda Saya</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:#0e1020; --panel:#161a30; --panel2:#1d2240; --line:#2a3055; --ink:#eaedff; --muted:#8f97c2;
+      --accent:#7c5cff; --accent2:#22d3ee; --ok:#2ee59d; --danger:#ff5470;
+      --head:'Rajdhani','Segoe UI',Arial,sans-serif; --body:'Inter','Segoe UI',Arial,sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; padding: 32px 20px; position: relative; overflow-x: hidden;
+      font-family: var(--body); font-size: 15px; line-height: 1.5; color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 8%, rgba(124,92,255,.22), transparent 42%),
+        radial-gradient(circle at 92% 90%, rgba(34,211,238,.14), transparent 40%),
+        var(--bg);
+    }
+    .stage-lights { display: none; }
+    .notes-layer { display: none; }
+    button, .btn-primary, .btn-secondary, .btn-danger {
+      font-family: var(--head); font-size: 1rem; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; cursor: pointer;
+      border: 1px solid transparent; border-radius: 10px; padding: 11px 20px; position: relative;
+      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease, background .12s ease;
+    }
+    button:hover, .btn-primary:hover, .btn-secondary:hover, .btn-danger:hover { transform: translateY(-1px); }
+    button:active, .btn-primary:active, .btn-secondary:active, .btn-danger:active { transform: translateY(0); }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    button .note-pop { display: none; }
+    label { font-family: var(--head); font-size: .9rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    input, select, textarea {
+      width: 100%; background: #0f1228; color: var(--ink); font-family: var(--body); font-size: 15px;
+      border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; outline: none;
+      transition: border-color .12s ease, box-shadow .12s ease;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124,92,255,.25); }
+    input:disabled { opacity: .55; }
+    select option { background: #0f1228; }
+    textarea { min-height: 100px; resize: vertical; }
+    ::placeholder { color: #5e6690; }
+
+    body { padding: 0; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; padding: 14px 28px; background: rgba(22,26,48,.9); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
+    .brand { font-family: var(--head); font-weight: 700; font-size: 1.4rem; letter-spacing: 1.5px; text-transform: uppercase; }
+    .brand span { color: var(--accent2); }
+    .wrap { max-width: 960px; margin: 28px auto 70px; padding: 0 20px; position: relative; z-index: 1; }
+    .hero { display: flex; align-items: center; gap: 22px; padding: 28px; border-radius: 20px; flex-wrap: wrap; background: linear-gradient(120deg, #2a1f6b, #3b2c9a 55%, #1e5a8a); border: 1px solid rgba(255,255,255,.12); box-shadow: 0 20px 50px rgba(60,40,160,.35); }
+    .avatar { width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, var(--accent2), var(--accent)); border: 3px solid rgba(255,255,255,.4); font-family: var(--head); font-size: 2.4rem; font-weight: 700; color: #fff; }
+    .hero h1 { margin: 0 0 8px; font-family: var(--head); font-size: 2rem; letter-spacing: 1px; text-transform: uppercase; }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip { background: rgba(255,255,255,.14); padding: 4px 12px; border-radius: 999px; font-size: .8rem; font-weight: 600; }
+    .hero .spacer { flex: 1; }
+    .btn-light { background: #fff; color: #2a1f6b; border-color: #fff; }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), #5b8cff); color: #fff; box-shadow: 0 6px 18px rgba(124,92,255,.35); }
+    .btn-ghost { background: var(--panel2); color: var(--ink); border-color: var(--line); }
+    .btn-ghost:hover { border-color: var(--accent); }
+    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 26px; margin-top: 22px; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+    .panel h2 { margin: 0 0 18px; font-family: var(--head); font-size: 1.3rem; letter-spacing: 1px; text-transform: uppercase; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+    .item { background: var(--panel2); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 12px; padding: 13px 16px; }
+    .item.wide { grid-column: 1 / -1; }
+    .item small { display: block; font-family: var(--head); font-size: .8rem; letter-spacing: 1px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; font-weight: 700; }
+    .item div { word-break: break-word; }
+    .actions { display: flex; gap: 12px; margin-top: 20px; }
+    .hidden { display: none !important; }
+    .err { margin-top: 14px; color: var(--danger); font-weight: 600; }
+    .hint { color: var(--muted); font-size: .8rem; margin-top: 6px; }
+    @media (max-width: 640px) { .topbar { padding: 12px 16px; } .hero h1 { font-size: 1.6rem; } }
+  </style>
+</head>
+<body>
+    <div class="topbar">
+    <div class="brand">Users <span>Manager</span></div>
+    <button class="btn btn-ghost" id="logoutBtn">Logout</button>
+  </div>
+
+  <div class="wrap">
+    <div class="hero">
+      <div class="avatar" id="avatar">?</div>
+      <div>
+        <h1 id="heroName">Memuat...</h1>
+        <div class="chips"><span class="chip" id="chipNisn">NISN -</span><span class="chip" id="chipUser">@-</span></div>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn btn-light" id="editBtn">Edit Profil</button>
+    </div>
+
+    <div class="panel" id="viewPanel">
+      <h2>Profil Saya</h2>
+      <div class="grid" id="viewGrid"></div>
+    </div>
+
+    <div class="panel hidden" id="editPanel">
+      <h2>Edit Profil</h2>
+      <div class="grid">
+        <div><label for="fName">Nama</label><input id="fName" /></div>
+        <div><label for="fNisn">NISN</label><input id="fNisn" disabled /><div class="hint">NISN tidak dapat diubah.</div></div>
+        <div><label for="fTtl">TTL</label><input id="fTtl" /></div>
+        <div><label for="fGender">Gender</label>
+          <select id="fGender"><option value="Laki-laki">Laki-laki</option><option value="Perempuan">Perempuan</option></select></div>
+        <div><label for="fEmail">Email</label><input id="fEmail" type="email" /></div>
+        <div><label for="fPhone">No. Telepon</label><input id="fPhone" type="tel" inputmode="tel" /></div>
+        <div class="item wide" style="border:0;padding:0;"><label for="fAddress">Alamat</label><textarea id="fAddress"></textarea></div>
+      </div>
+      <div class="err hidden" id="errBox"></div>
+      <div class="actions">
+        <button class="btn btn-primary" id="saveBtn">Simpan Perubahan</button>
+        <button class="btn btn-ghost" id="cancelBtn">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const api = 'api/auth.php';
+    let profile = null;
+    let username = '';
+
+    function toast(text, type) {
+      const t = document.createElement('div');
+      t.textContent = text;
+      t.style.cssText = 'position:fixed;top:18px;right:18px;z-index:9999;max-width:340px;padding:14px 18px;border-radius:12px;color:#fff;font-weight:600;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:14px;background:#1d2240;box-shadow:0 12px 32px rgba(0,0,0,.45);border-left:5px solid ' + (type === 'error' ? '#ff5470' : '#2ee59d');
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 5500);
+    }
+
+    function esc(v) {
+      const d = document.createElement('div');
+      d.textContent = v == null || v === '' ? '-' : v;
+      return d.innerHTML;
+    }
+
+    async function call(payload) {
+      try {
+        const res = await fetch(api, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify(payload) });
+        const data = await res.json();
+        return { ok: res.ok && data.success !== false, data };
+      } catch (e) {
+        return { ok: false, data: { message: 'Tidak bisa terhubung ke server.' } };
+      }
+    }
+
+    function render() {
+      $('avatar').textContent = (profile.name || username || '?').trim().charAt(0).toUpperCase();
+      $('heroName').textContent = profile.name;
+      $('chipNisn').textContent = 'NISN ' + profile.nisn;
+      $('chipUser').textContent = '@' + username;
+      const rows = [['Nama','name'],['NISN','nisn'],['TTL','ttl'],['Gender','gender'],['Email','email'],['No. Telepon','phone'],['Alamat','address']];
+      $('viewGrid').innerHTML = rows.map(([l,k]) =>
+        '<div class="item' + (k === 'address' ? ' wide' : '') + '"><small>' + l + '</small><div>' + esc(profile[k]) + '</div></div>').join('');
+    }
+
+    function fillForm() {
+      $('fName').value = profile.name || '';
+      $('fNisn').value = profile.nisn || '';
+      $('fTtl').value = profile.ttl || '';
+      $('fGender').value = profile.gender || 'Laki-laki';
+      $('fEmail').value = profile.email || '';
+      $('fPhone').value = profile.phone || '';
+      $('fAddress').value = profile.address || '';
+      $('errBox').classList.add('hidden');
+    }
+
+    function setEdit(on) {
+      $('viewPanel').classList.toggle('hidden', on);
+      $('editPanel').classList.toggle('hidden', !on);
+      $('editBtn').classList.toggle('hidden', on);
+      if (on) fillForm();
+    }
+
+    $('editBtn').addEventListener('click', () => setEdit(true));
+    $('cancelBtn').addEventListener('click', () => setEdit(false));
+
+    $('saveBtn').addEventListener('click', async () => {
+      const btn = $('saveBtn');
+      btn.disabled = true;
+      const { ok, data } = await call({
+        action: 'update_profile',
+        name: $('fName').value, ttl: $('fTtl').value, gender: $('fGender').value,
+        email: $('fEmail').value, phone: $('fPhone').value, address: $('fAddress').value
+      });
+      btn.disabled = false;
+      if (!ok) {
+        $('errBox').textContent = data.message || 'Gagal menyimpan.';
+        $('errBox').classList.remove('hidden');
+        return;
+      }
+      profile = data.profile;
+      render();
+      setEdit(false);
+      toast(data.message, 'success');
+    });
+
+    $('logoutBtn').addEventListener('click', async () => {
+      await call({ action: 'logout' });
+      window.location.href = 'index.html';
+    });
+
+    async function init() {
+      try {
+        const res = await fetch(api + '?action=me', { credentials: 'same-origin' });
+        const data = await res.json();
+        if (!res.ok || !data.success || data.role === 'admin') { window.location.href = 'index.html'; return; }
+        username = data.username;
+        profile = data.profile;
+        if (!profile) { $('heroName').textContent = 'Profil tidak ditemukan'; $('editBtn').classList.add('hidden'); return; }
+        render();
+        const flash = sessionStorage.getItem('flash');
+        if (flash) { toast(flash, 'success'); sessionStorage.removeItem('flash'); }
+      } catch (e) {
+        $('heroName').textContent = 'Gagal memuat profil';
+      }
+    }
+    init();
+  </script>
+</body>
+</html>

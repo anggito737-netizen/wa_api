@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Users CRUD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:#0e1020; --panel:#161a30; --panel2:#1d2240; --line:#2a3055; --ink:#eaedff; --muted:#8f97c2;
+      --accent:#7c5cff; --accent2:#22d3ee; --ok:#2ee59d; --danger:#ff5470;
+      --head:'Rajdhani','Segoe UI',Arial,sans-serif; --body:'Inter','Segoe UI',Arial,sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; padding: 32px 20px; position: relative; overflow-x: hidden;
+      font-family: var(--body); font-size: 15px; line-height: 1.5; color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 8%, rgba(124,92,255,.22), transparent 42%),
+        radial-gradient(circle at 92% 90%, rgba(34,211,238,.14), transparent 40%),
+        var(--bg);
+    }
+    .stage-lights { display: none; }
+    .notes-layer { display: none; }
+    button, .btn-primary, .btn-secondary, .btn-danger {
+      font-family: var(--head); font-size: 1rem; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; cursor: pointer;
+      border: 1px solid transparent; border-radius: 10px; padding: 11px 20px; position: relative;
+      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease, background .12s ease;
+    }
+    button:hover, .btn-primary:hover, .btn-secondary:hover, .btn-danger:hover { transform: translateY(-1px); }
+    button:active, .btn-primary:active, .btn-secondary:active, .btn-danger:active { transform: translateY(0); }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    button .note-pop { display: none; }
+    label { font-family: var(--head); font-size: .9rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    input, select, textarea {
+      width: 100%; background: #0f1228; color: var(--ink); font-family: var(--body); font-size: 15px;
+      border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; outline: none;
+      transition: border-color .12s ease, box-shadow .12s ease;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124,92,255,.25); }
+    input:disabled { opacity: .55; }
+    select option { background: #0f1228; }
+    textarea { min-height: 100px; resize: vertical; }
+    ::placeholder { color: #5e6690; }
+
+    .auth-shell { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 32px 20px; position: relative; z-index: 1; }
+    .auth-card { width: min(100%, 440px); background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 30px 26px; box-shadow: 0 20px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(124,92,255,.15); }
+    .auth-brand { text-align: center; margin-bottom: 20px; }
+    .auth-badge { width: 52px; height: 52px; margin: 0 auto; display: grid; place-items: center; border-radius: 14px; color: #fff; font-family: var(--head); font-size: 1.7rem; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); box-shadow: 0 8px 24px rgba(124,92,255,.4); }
+    .auth-brand h3 { margin: 12px 0 0; font-family: var(--head); font-size: 1.7rem; letter-spacing: 1px; text-transform: uppercase; }
+    .auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 5px; margin-bottom: 20px; background: #0f1228; border: 1px solid var(--line); border-radius: 12px; }
+    .auth-tab { background: transparent; color: var(--muted); padding: 9px 12px; }
+    .auth-tab.active { background: linear-gradient(135deg, var(--accent), #5b8cff); color: #fff; }
+    .auth-form { display: none; gap: 16px; }
+    .auth-form.active { display: flex; flex-direction: column; }
+    .auth-note, .auth-footer { color: var(--muted); font-size: .85rem; margin: 0; }
+    .auth-footer { margin-top: 14px; text-align: center; }
+
+    .container { max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; padding-bottom: 40px; }
+    .page-header { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 22px; }
+    .page-header h2 { margin: 0; font-family: var(--head); font-size: 2rem; letter-spacing: 1.5px; text-transform: uppercase; background: linear-gradient(90deg, #fff, #b9a8ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .header-badge { display: inline-flex; align-items: center; gap: 10px; padding: 8px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; font-family: var(--head); font-weight: 600; letter-spacing: .8px; color: var(--muted); text-transform: uppercase; }
+    .equalizer { display: inline-flex; gap: 3px; align-items: flex-end; height: 14px; }
+    .equalizer span { width: 3px; height: 100%; border-radius: 2px; background: var(--accent2); animation: eq 1.2s ease-in-out infinite; transform-origin: bottom; }
+    .equalizer span:nth-child(2) { animation-delay: .15s; } .equalizer span:nth-child(3) { animation-delay: .3s; }
+    .equalizer span:nth-child(4) { animation-delay: .45s; } .equalizer span:nth-child(5) { animation-delay: .6s; }
+    @keyframes eq { 0%,100% { transform: scaleY(1); } 50% { transform: scaleY(.3); } }
+
+    .card { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 24px; margin-bottom: 26px; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+    .form-card::before { content: ""; position: absolute; left: 24px; right: 24px; top: -1px; height: 3px; border-radius: 0 0 4px 4px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; }
+    .form-group { display: flex; flex-direction: column; gap: 8px; }
+    .actions { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), #5b8cff); color: #fff; box-shadow: 0 6px 18px rgba(124,92,255,.35); }
+    .btn-primary:hover { box-shadow: 0 8px 24px rgba(124,92,255,.5); }
+    .btn-secondary { background: var(--panel2); color: var(--ink); border-color: var(--line); }
+    .btn-secondary:hover { border-color: var(--accent); }
+    .btn-danger { background: rgba(255,84,112,.12); color: var(--danger); border-color: rgba(255,84,112,.4); }
+    .btn-danger:hover { background: rgba(255,84,112,.22); }
+    .message { min-height: 26px; margin-top: 18px; padding-left: 2px; font-weight: 600; font-size: .92rem; }
+    .message.success { color: var(--ok); }
+    .message.error { color: var(--danger); }
+
+    .dash-stat { position: relative; background: var(--panel2); border: 1px solid var(--line); border-radius: 14px; padding: 16px; text-align: center; color: var(--muted); font-size: .85rem; overflow: hidden; }
+    .dash-stat::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+    .dash-num { font-family: var(--head); font-size: 2.2rem; font-weight: 700; color: #fff; line-height: 1.1; }
+    .card h3 { font-family: var(--head); font-size: 1.2rem; letter-spacing: 1px; text-transform: uppercase; }
+    #notifList li { padding: 10px 12px; border-bottom: 1px solid var(--line); font-size: .92rem; }
+    #notifList li.unread { font-weight: 600; border-left: 3px solid var(--accent); background: rgba(124,92,255,.1); }
+    #notifList small { display: block; color: var(--muted); font-weight: 400; font-size: .78rem; }
+
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+    table { width: 100%; border-collapse: collapse; min-width: 900px; }
+    thead th { background: var(--panel2); color: var(--muted); font-family: var(--head); font-size: .9rem; letter-spacing: 1px; text-transform: uppercase; text-align: left; padding: 13px 14px; border-bottom: 1px solid var(--line); }
+    td { padding: 13px 14px; border-bottom: 1px solid rgba(42,48,85,.7); vertical-align: top; }
+    tbody tr:hover td { background: rgba(124,92,255,.08); }
+    .user-row { animation: rowIn .35s ease both; }
+    .user-row td:first-child { border-left: 3px solid var(--row-accent, var(--accent)); }
+    @keyframes rowIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .center { text-align: center; }
+    .loading { text-align: center; color: var(--muted); padding: 28px 14px; }
+    .action-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .action-group button { padding: 7px 14px; font-size: .9rem; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 999px; background: rgba(46,229,157,.12); color: var(--ok); font-size: .78rem; font-weight: 600; }
+    .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); animation: pulse 1.6s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity: .35; } }
+    .table-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+    .search-box { position: relative; width: min(100%, 380px); }
+    .search-box input { padding-left: 42px; }
+    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 1.15rem; }
+    .pagination { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+    .page-info { color: var(--muted); font-size: .88rem; }
+    .page-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+    .page-btn { background: var(--panel2); color: var(--ink); border-color: var(--line); padding: 7px 13px; }
+    .page-btn.active { background: linear-gradient(135deg, var(--accent), #5b8cff); border-color: transparent; color: #fff; }
+    @media (max-width: 640px) { body { padding: 20px 14px; } .page-header { flex-direction: column; align-items: flex-start; } .card { padding: 16px; } .page-header h2 { font-size: 1.6rem; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
+  </style>
+</head>
+<body>
+  <div id="authShell" class="auth-shell">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <div class="auth-badge">U</div>
+        <h3>Users Manager</h3>
+      </div>
+
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab active" data-auth-tab="login">Login</button>
+        <button type="button" class="auth-tab" data-auth-tab="register">Register</button>
+      </div>
+
+      <form id="loginForm" class="auth-form active">
+        <div class="form-group">
+          <label for="loginUsername">Username</label>
+          <input id="loginUsername" name="username" type="text" placeholder="Masukkan username" required />
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input id="loginPassword" name="password" type="password" placeholder="Masukkan password" required />
+        </div>
+
+        <button type="submit" class="btn-primary">Masuk</button>
+        <p class="auth-note">Admin: username <strong>admin</strong> / password <strong>admin123</strong></p>
+      </form>
+
+      <form id="registerForm" class="auth-form">
+        <div class="form-group">
+          <label for="registerUsername">Username</label>
+          <input id="registerUsername" type="text" placeholder="Buat username baru" required />
+        </div>
+        <div class="form-group">
+          <label for="registerPassword">Password</label>
+          <input id="registerPassword" type="password" placeholder="Minimal 6 karakter" required />
+        </div>
+        <div class="form-group">
+          <label for="registerName">Nama</label>
+          <input id="registerName" type="text" required />
+        </div>
+        <div class="form-group">
+          <label for="registerNisn">NISN</label>
+          <input id="registerNisn" type="text" required />
+        </div>
+        <div class="form-group">
+          <label for="registerTtl">TTL</label>
+          <input id="registerTtl" type="text" placeholder="Madiun, 03 Maret 2010" required />
+        </div>
+        <div class="form-group">
+          <label for="registerGender">Gender</label>
+          <select id="registerGender" required>
+            <option value="">Pilih gender</option>
+            <option value="Laki-laki">Laki-laki</option>
+            <option value="Perempuan">Perempuan</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="registerEmail">Email</label>
+          <input id="registerEmail" type="email" required />
+        </div>
+        <div class="form-group">
+          <label for="registerPhone">No. Telepon</label>
+          <input id="registerPhone" type="tel" inputmode="tel" required />
+        </div>
+        <div class="form-group">
+          <label for="registerAddress">Alamat</label>
+          <textarea id="registerAddress" rows="2" required></textarea>
+        </div>
+
+        <button type="submit" class="btn-primary">Daftar</button>
+      </form>
+
+      <div id="authMessage" class="message" aria-live="polite"></div>
+      <p class="auth-footer">Daftar akun baru dengan mengisi data diri.</p>
+    </div>
+  </div>
+
+  <div class="stage-lights"></div>
+  <div class="notes-layer" id="notesLayer"></div>
+  <div id="appContainer" class="container" style="display:none;">
+    <div class="page-header">
+      <h2>Data Users</h2>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <div class="header-badge">Management System <span class="equalizer"><span></span><span></span><span></span><span></span><span></span></span></div>
+        <a href="tambah_user.html" class="btn-primary" style="text-decoration:none; padding:12px 20px; display:inline-block;">+ Tambah User</a>
+        <button type="button" id="logoutBtn" class="btn-secondary">Logout</button>
+      </div>
+    </div>
+
+    <div class="card form-card" id="dashCard">
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:14px; margin-bottom:20px;">
+        <div class="dash-stat"><div class="dash-num" id="statTotal">0</div>Total User</div>
+        <div class="dash-stat"><div class="dash-num" id="statMale">0</div>Laki-laki</div>
+        <div class="dash-stat"><div class="dash-num" id="statFemale">0</div>Perempuan</div>
+        <div class="dash-stat"><div class="dash-num" id="statAccounts">0</div>Akun Terdaftar</div>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
+        <h3 style="margin:0;">Notifikasi <span id="notifBadge" style="display:none; background:#c62828; color:#fff; border-radius:999px; padding:2px 10px; font-size:.8rem;"></span></h3>
+        <button type="button" id="markReadBtn" class="btn-secondary" style="padding:8px 14px;">Tandai sudah dibaca</button>
+      </div>
+      <ul id="notifList" style="list-style:none; margin:0; padding:0; max-height:220px; overflow-y:auto;"></ul>
+    </div>
+
+    <div class="card form-card" id="editCard" style="display:none;">
+      <form id="userForm">
+        <input type="hidden" id="userId" />
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="name">Nama</label>
+            <input id="name" name="name" type="text" required />
+          </div>
+
+          <div class="form-group">
+            <label for="nisn">NISN</label>
+            <input id="nisn" name="nisn" type="text" required />
+          </div>
+
+          <div class="form-group">
+            <label for="ttl">TTL</label>
+            <input id="ttl" name="ttl" type="text" required />
+          </div>
+
+          <div class="form-group">
+            <label for="gender">Gender</label>
+            <select id="gender" name="gender" required>
+              <option value="">Pilih gender</option>
+              <option value="Laki-laki">Laki-laki</option>
+              <option value="Perempuan">Perempuan</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" required />
+          </div>
+
+          <div class="form-group">
+            <label for="phone">No. Telepon</label>
+            <input id="phone" name="phone" type="tel" inputmode="tel" required />
+          </div>
+
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label for="address">Alamat</label>
+            <textarea id="address" name="address" required></textarea>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn-primary" id="submitBtn">Tambah User</button>
+          <button type="button" class="btn-secondary" id="cancelEdit" style="display:none;">Batal Edit</button>
+        </div>
+      </form>
+
+      <div id="message" class="message" aria-live="polite"></div>
+    </div>
+
+    <div class="card">
+      <div class="page-header" style="margin-bottom: 18px; padding: 0 2px;">
+        <h2 style="font-size: 1.4rem;">Daftar Pengguna</h2>
+        <span class="pill"><span class="dot"></span> Live Data</span>
+      </div>
+
+      <div class="table-toolbar">
+        <div class="search-box">
+          <span class="search-icon">⌕</span>
+          <input id="searchUser" type="text" placeholder="Cari nama, NISN, email, telepon, atau alamat..." />
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th width="70">No</th>
+              <th>Nama</th>
+              <th>NISN</th>
+              <th>TTL</th>
+              <th>Gender</th>
+              <th>Email</th>
+              <th>No. Telepon</th>
+              <th>Alamat</th>
+              <th width="170">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="hasil">
+            <tr>
+              <td colspan="9" class="loading">Memuat data...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="pagination" class="pagination"></div>
+    </div>
+  </div>
+
+  <script>
+    const authShell = document.getElementById('authShell');
+    const appContainer = document.getElementById('appContainer');
+    const authTabs = document.querySelectorAll('.auth-tab');
+    const authForms = document.querySelectorAll('.auth-form');
+    const authMessageBox = document.getElementById('authMessage');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const authApi = 'api/auth.php';
+
+    async function authCall(payload) {
+      try {
+        const res = await fetch(authApi, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        return { ok: res.ok && data.success !== false, data };
+      } catch (error) {
+        return { ok: false, data: { message: 'Tidak bisa terhubung ke server.' } };
+      }
+    }
+
+    function showAuthMessage(text, type = 'success') {
+      if (!authMessageBox) return;
+      authMessageBox.textContent = text;
+      authMessageBox.className = 'message ' + type;
+    }
+
+    function setAuthView(isLoggedIn) {
+      if (authShell) authShell.style.display = isLoggedIn ? 'none' : 'flex';
+      if (appContainer) appContainer.style.display = isLoggedIn ? 'block' : 'none';
+      if (isLoggedIn) { loadUsers(); startDashboard(); } else { stopDashboard(); }
+    }
+
+    function activateAuthTab(tabName) {
+      authTabs.forEach((tab) => tab.classList.toggle('active', tab.dataset.authTab === tabName));
+      authForms.forEach((form) => {
+        form.classList.toggle('active', form.id === (tabName === 'login' ? 'loginForm' : 'registerForm'));
+      });
+    }
+
+    authTabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        activateAuthTab(tab.dataset.authTab);
+        showAuthMessage('');
+      });
+    });
+
+    document.getElementById('loginForm')?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const { ok, data } = await authCall({ action: 'login', username, password });
+      if (!ok) {
+        showAuthMessage(data.message || 'Login gagal.', 'error');
+        return;
+      }
+      if (data.role === 'admin') {
+        setAuthView(true);
+        toast(data.message || 'Anda berhasil login.', 'success');
+      } else {
+        sessionStorage.setItem('flash', data.message || 'Anda berhasil login.');
+        window.location.href = 'beranda.html';
+      }
+    });
+
+    document.getElementById('registerForm')?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const ids = { username: 'registerUsername', password: 'registerPassword', name: 'registerName', nisn: 'registerNisn', ttl: 'registerTtl', gender: 'registerGender', email: 'registerEmail', phone: 'registerPhone', address: 'registerAddress' };
+      const payload = { action: 'register' };
+      for (const [key, id] of Object.entries(ids)) {
+        const v = document.getElementById(id).value;
+        payload[key] = key === 'password' ? v : v.trim();
+      }
+      const { ok, data } = await authCall(payload);
+      if (!ok) {
+        showAuthMessage(data.message || 'Registrasi gagal.', 'error');
+        return;
+      }
+      document.getElementById('registerForm').reset();
+      activateAuthTab('login');
+      showAuthMessage(data.message, 'success');
+    });
+
+    logoutBtn?.addEventListener('click', async () => {
+      await authCall({ action: 'logout' });
+      setAuthView(false);
+      document.getElementById('loginForm')?.reset();
+      document.getElementById('registerForm')?.reset();
+      activateAuthTab('login');
+      showAuthMessage('Anda telah logout.', 'success');
+    });
+
+    async function initSession() {
+      try {
+        const res = await fetch(authApi + '?action=me', { credentials: 'same-origin' });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          if (data.role === 'admin') { setAuthView(true); return; }
+          window.location.href = 'beranda.html';
+          return;
+        }
+      } catch (error) { /* belum login */ }
+      setAuthView(false);
+      activateAuthTab('login');
+    }
+
+    const apiUrl = 'api/users.php';
+    const form = document.getElementById('userForm');
+    const userIdInput = document.getElementById('userId');
+    const submitBtn = document.getElementById('submitBtn');
+    const cancelEditBtn = document.getElementById('cancelEdit');
+    const messageBox = document.getElementById('message');
+    const tableBody = document.getElementById('hasil');
+    const paginationBox = document.getElementById('pagination');
+    const searchInput = document.getElementById('searchUser');
+    const pageSize = 10;
+    let currentPage = 1;
+    let allUsers = [];
+
+    /* ---------- Streaking speed-line background (F1-inspired racing vibe) ---------- */
+    const notesLayer = document.getElementById('notesLayer');
+
+    function spawnNote() {
+      if (!notesLayer) return;
+      const coin = document.createElement('span');
+      coin.className = 'note';
+      coin.style.left = Math.random() * 100 + 'vw';
+      const size = 8 + Math.floor(Math.random() * 3) * 2;
+      coin.style.width = size + 'px';
+      coin.style.height = size + 'px';
+      const duration = 5 + Math.random() * 5;
+      coin.style.animationDuration = duration + 's';
+      notesLayer.appendChild(coin);
+      setTimeout(() => coin.remove(), duration * 1000);
+    }
+
+    
+    /* little checkered-flag / spark burst on any button click, like a pit-stop cue */
+    const CLICK_ICONS = ['⭐', '🪙', '💎'];
+    document.addEventListener('click', (event) => {
+      const btn = event.target.closest('button');
+      if (!btn) return;
+      for (let i = 0; i < 3; i++) {
+        const pop = document.createElement('span');
+        pop.className = 'note-pop';
+        pop.textContent = CLICK_ICONS[Math.floor(Math.random() * CLICK_ICONS.length)];
+        pop.style.left = (30 + Math.random() * 40) + '%';
+        pop.style.top = '50%';
+        pop.style.animationDelay = (i * 0.06) + 's';
+        btn.appendChild(pop);
+        setTimeout(() => pop.remove(), 750);
+      }
+    }, true);
+
+    function showMessage(text, type = 'success') {
+      toast(text, type);
+      messageBox.textContent = text;
+      messageBox.className = 'message ' + type;
+    }
+
+    function clearForm() {
+      form.reset();
+      userIdInput.value = '';
+      submitBtn.textContent = 'Tambah User';
+      cancelEditBtn.style.display = 'none';
+      document.getElementById('editCard').style.display = 'none';
+    }
+
+    function renderPagination(totalItems) {
+      const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+      if (totalPages === 1) {
+        paginationBox.innerHTML = '<div class="page-info">Total: ' + totalItems + ' data</div>';
+        return;
+      }
+
+      const buttons = [];
+      buttons.push('<button type="button" class="page-btn" data-page="prev" ' + (currentPage === 1 ? 'disabled' : '') + '>Prev</button>');
+
+      for (let page = 1; page <= totalPages; page++) {
+        buttons.push('<button type="button" class="page-btn ' + (page === currentPage ? 'active' : '') + '" data-page="' + page + '">' + page + '</button>');
+      }
+
+      buttons.push('<button type="button" class="page-btn" data-page="next" ' + (currentPage === totalPages ? 'disabled' : '') + '>Next</button>');
+
+      paginationBox.innerHTML = `
+        <div class="page-info">Menampilkan ${(currentPage - 1) * pageSize + 1}-${Math.min(currentPage * pageSize, totalItems)} dari ${totalItems} data</div>
+        <div class="page-buttons">${buttons.join('')}</div>
+      `;
+    }
+
+    function getFilteredUsers(data) {
+      const keyword = (searchInput?.value || '').trim().toLowerCase();
+      if (!keyword) {
+        return [...data].sort((a, b) => Number(a.id) - Number(b.id));
+      }
+
+      return [...data]
+        .filter((item) => {
+          const haystack = [item.name, item.nisn, item.ttl, item.gender, item.email, item.phone, item.address].join(' ').toLowerCase();
+          return haystack.includes(keyword);
+        })
+        .sort((a, b) => Number(a.id) - Number(b.id));
+    }
+
+    function renderUsers(data) {
+      allUsers = [...data].sort((a, b) => Number(a.id) - Number(b.id));
+      const filteredUsers = getFilteredUsers(allUsers);
+
+      if (!Array.isArray(filteredUsers) || filteredUsers.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="9" class="loading">Data user tidak ditemukan.</td></tr>';
+        paginationBox.innerHTML = '';
+        return;
+      }
+
+      const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
+      if (currentPage > totalPages) {
+        currentPage = totalPages;
+      }
+
+      const start = (currentPage - 1) * pageSize;
+      const end = start + pageSize;
+      const paginated = filteredUsers.slice(start, end);
+      const palette = ['#fee2e2', '#f3f4f6', '#fef3c7', '#e5e7eb', '#fecaca', '#eef2ff', '#fff7ed', '#f1f5f9', '#fef2f2', '#f5f5f4'];
+
+      tableBody.innerHTML = paginated.map((item, index) => {
+        const accent = palette[(start + index) % palette.length];
+        const delay = (index * 0.05).toFixed(2);
+        return `
+          <tr class="user-row" style="--row-accent: ${accent}; animation-delay: ${delay}s;">
+            <td class="center">${start + index + 1}</td>
+            <td>${item.name}</td>
+            <td>${item.nisn}</td>
+            <td>${item.ttl}</td>
+            <td>${item.gender}</td>
+            <td>${item.email}</td>
+            <td>${item.phone || '-'}</td>
+            <td>${item.address}</td>
+            <td>
+              <div class="action-group">
+                <button type="button" class="btn-secondary" data-action="edit" data-id="${item.id}">Edit</button>
+                <button type="button" class="btn-danger" data-action="delete" data-id="${item.id}">Hapus</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      renderPagination(filteredUsers.length);
+    }
+
+    async function loadUsers() {
+      try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+          throw new Error('Gagal memuat data user.');
+        }
+
+        const data = await response.json();
+        renderUsers(data);
+      } catch (error) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="9" class="loading" style="color:red;">${error.message}</td>
+          </tr>
+        `;
+      }
+    }
+
+    function getFormData() {
+      return {
+        id: userIdInput.value ? Number(userIdInput.value) : null,
+        name: document.getElementById('name').value.trim(),
+        nisn: document.getElementById('nisn').value.trim(),
+        ttl: document.getElementById('ttl').value.trim(),
+        gender: document.getElementById('gender').value,
+        email: document.getElementById('email').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        address: document.getElementById('address').value.trim()
+      };
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const payload = getFormData();
+      const isEdit = Boolean(payload.id);
+
+      if (!payload.name || !payload.nisn || !payload.ttl || !payload.gender || !payload.email || !payload.phone || !payload.address) {
+        showMessage('Semua field harus diisi.', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: isEdit ? 'PUT' : 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || result.success === false) {
+          throw new Error(result.message || 'Operasi gagal.');
+        }
+
+        showMessage(result.message || 'Berhasil.', 'success');
+        clearForm();
+        await loadUsers();
+      } catch (error) {
+        showMessage(error.message, 'error');
+      }
+    });
+
+    document.addEventListener('click', async (event) => {
+      const button = event.target.closest('button');
+      if (!button) return;
+
+      if (button.dataset.page === 'prev') {
+        if (currentPage > 1) {
+          currentPage -= 1;
+          renderUsers(allUsers);
+        }
+        return;
+      }
+
+      if (button.dataset.page === 'next') {
+        const totalPages = Math.max(1, Math.ceil(allUsers.length / pageSize));
+        if (currentPage < totalPages) {
+          currentPage += 1;
+          renderUsers(allUsers);
+        }
+        return;
+      }
+
+      if (button.dataset.page) {
+        const pageNumber = Number(button.dataset.page);
+        if (!Number.isNaN(pageNumber)) {
+          currentPage = pageNumber;
+          renderUsers(allUsers);
+        }
+        return;
+      }
+
+      const action = button.dataset.action;
+      const id = Number(button.dataset.id);
+
+      if (action === 'edit') {
+        try {
+          const response = await fetch(apiUrl);
+          if (!response.ok) throw new Error('Gagal mengambil data user.');
+
+          const users = await response.json();
+          const user = users.find((item) => Number(item.id) === id);
+
+          if (!user) {
+            showMessage('Data user tidak ditemukan.', 'error');
+            return;
+          }
+
+          userIdInput.value = user.id;
+          document.getElementById('name').value = user.name;
+          document.getElementById('nisn').value = user.nisn;
+          document.getElementById('ttl').value = user.ttl;
+          document.getElementById('gender').value = user.gender;
+          document.getElementById('email').value = user.email;
+          document.getElementById('phone').value = user.phone || '';
+          document.getElementById('address').value = user.address;
+          submitBtn.textContent = 'Update User';
+          cancelEditBtn.style.display = 'inline-block';
+          document.getElementById('editCard').style.display = '';
+          document.getElementById('editCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+          showMessage('Mode edit aktif. Silakan ubah data dan simpan.', 'success');
+        } catch (error) {
+          showMessage(error.message, 'error');
+        }
+      }
+
+      if (action === 'delete') {
+        const target = Number(button.dataset.id);
+        const confirmDelete = confirm('Apakah Anda yakin ingin menghapus data ini?');
+        if (!confirmDelete) return;
+
+        try {
+          const response = await fetch(apiUrl, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id: target })
+          });
+
+          const result = await response.json();
+          if (!response.ok || result.success === false) {
+            throw new Error(result.message || 'Gagal menghapus data.');
+          }
+
+          showMessage(result.message || 'Data berhasil dihapus.', 'success');
+          if (userIdInput.value && Number(userIdInput.value) === target) {
+            clearForm();
+          }
+          await loadUsers();
+        } catch (error) {
+          showMessage(error.message, 'error');
+        }
+      }
+    });
+
+    cancelEditBtn.addEventListener('click', () => {
+      clearForm();
+      showMessage('Edit dibatalkan.', 'success');
+    });
+
+    searchInput?.addEventListener('input', () => {
+      currentPage = 1;
+      renderUsers(allUsers);
+    });
+
+    function toast(text, type) {
+      const t = document.createElement('div');
+      t.textContent = text;
+      t.style.cssText = 'position:fixed;top:18px;right:18px;z-index:9999;max-width:340px;padding:14px 18px;border-radius:12px;color:#fff;font-weight:600;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:14px;background:#1d2240;box-shadow:0 12px 32px rgba(0,0,0,.45);border-left:5px solid ' + (type === 'error' ? '#ff5470' : '#2ee59d');
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 5000);
+    }
+
+    let dashTimer = null;
+    let lastUnread = null;
+    const dashApi = 'api/dashboard.php';
+
+    async function refreshDashboard() {
+      try {
+        const res = await fetch(dashApi, { credentials: 'same-origin' });
+        if (!res.ok) return;
+        const d = await res.json();
+        document.getElementById('statTotal').textContent = d.stats.total;
+        document.getElementById('statMale').textContent = d.stats.male;
+        document.getElementById('statFemale').textContent = d.stats.female;
+        document.getElementById('statAccounts').textContent = d.stats.accounts;
+
+        const badge = document.getElementById('notifBadge');
+        badge.style.display = d.unread > 0 ? 'inline-block' : 'none';
+        badge.textContent = d.unread + ' baru';
+
+        const list = document.getElementById('notifList');
+        list.innerHTML = '';
+        if (d.items.length === 0) {
+          const li = document.createElement('li');
+          li.textContent = 'Belum ada notifikasi.';
+          list.appendChild(li);
+        }
+        d.items.forEach((it) => {
+          const li = document.createElement('li');
+          if (!it.is_read) li.className = 'unread';
+          li.textContent = it.message;
+          const small = document.createElement('small');
+          small.textContent = it.created_at;
+          li.appendChild(small);
+          list.appendChild(li);
+        });
+
+        if (lastUnread !== null && d.unread > lastUnread) {
+          toast(d.items[0] ? d.items[0].message : 'Ada notifikasi baru.', 'success');
+          loadUsers();
+        }
+        lastUnread = d.unread;
+      } catch (e) { /* abaikan */ }
+    }
+
+    function startDashboard() {
+      stopDashboard();
+      refreshDashboard();
+      dashTimer = setInterval(refreshDashboard, 10000);
+    }
+
+    function stopDashboard() {
+      if (dashTimer) { clearInterval(dashTimer); dashTimer = null; }
+      lastUnread = null;
+    }
+
+    document.getElementById('markReadBtn')?.addEventListener('click', async () => {
+      await fetch(dashApi, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ action: 'read_all' })
+      });
+      lastUnread = 0;
+      refreshDashboard();
+    });
+
+    initSession();
+  </script>
+</body>
+</html>

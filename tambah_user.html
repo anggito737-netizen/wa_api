@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tambah User</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:#0e1020; --panel:#161a30; --panel2:#1d2240; --line:#2a3055; --ink:#eaedff; --muted:#8f97c2;
+      --accent:#7c5cff; --accent2:#22d3ee; --ok:#2ee59d; --danger:#ff5470;
+      --head:'Rajdhani','Segoe UI',Arial,sans-serif; --body:'Inter','Segoe UI',Arial,sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; padding: 32px 20px; position: relative; overflow-x: hidden;
+      font-family: var(--body); font-size: 15px; line-height: 1.5; color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 8%, rgba(124,92,255,.22), transparent 42%),
+        radial-gradient(circle at 92% 90%, rgba(34,211,238,.14), transparent 40%),
+        var(--bg);
+    }
+    .stage-lights { display: none; }
+    .notes-layer { display: none; }
+    button, .btn-primary, .btn-secondary, .btn-danger {
+      font-family: var(--head); font-size: 1rem; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; cursor: pointer;
+      border: 1px solid transparent; border-radius: 10px; padding: 11px 20px; position: relative;
+      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease, background .12s ease;
+    }
+    button:hover, .btn-primary:hover, .btn-secondary:hover, .btn-danger:hover { transform: translateY(-1px); }
+    button:active, .btn-primary:active, .btn-secondary:active, .btn-danger:active { transform: translateY(0); }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    button .note-pop { display: none; }
+    label { font-family: var(--head); font-size: .9rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    input, select, textarea {
+      width: 100%; background: #0f1228; color: var(--ink); font-family: var(--body); font-size: 15px;
+      border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; outline: none;
+      transition: border-color .12s ease, box-shadow .12s ease;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124,92,255,.25); }
+    input:disabled { opacity: .55; }
+    select option { background: #0f1228; }
+    textarea { min-height: 100px; resize: vertical; }
+    ::placeholder { color: #5e6690; }
+
+    .auth-shell { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 32px 20px; position: relative; z-index: 1; }
+    .auth-card { width: min(100%, 440px); background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 30px 26px; box-shadow: 0 20px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(124,92,255,.15); }
+    .auth-brand { text-align: center; margin-bottom: 20px; }
+    .auth-badge { width: 52px; height: 52px; margin: 0 auto; display: grid; place-items: center; border-radius: 14px; color: #fff; font-family: var(--head); font-size: 1.7rem; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); box-shadow: 0 8px 24px rgba(124,92,255,.4); }
+    .auth-brand h3 { margin: 12px 0 0; font-family: var(--head); font-size: 1.7rem; letter-spacing: 1px; text-transform: uppercase; }
+    .auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 5px; margin-bottom: 20px; background: #0f1228; border: 1px solid var(--line); border-radius: 12px; }
+    .auth-tab { background: transparent; color: var(--muted); padding: 9px 12px; }
+    .auth-tab.active { background: linear-gradient(135deg, var(--accent), #5b8cff); color: #fff; }
+    .auth-form { display: none; gap: 16px; }
+    .auth-form.active { display: flex; flex-direction: column; }
+    .auth-note, .auth-footer { color: var(--muted); font-size: .85rem; margin: 0; }
+    .auth-footer { margin-top: 14px; text-align: center; }
+
+    .container { max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; padding-bottom: 40px; }
+    .page-header { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 22px; }
+    .page-header h2 { margin: 0; font-family: var(--head); font-size: 2rem; letter-spacing: 1.5px; text-transform: uppercase; background: linear-gradient(90deg, #fff, #b9a8ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .header-badge { display: inline-flex; align-items: center; gap: 10px; padding: 8px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; font-family: var(--head); font-weight: 600; letter-spacing: .8px; color: var(--muted); text-transform: uppercase; }
+    .equalizer { display: inline-flex; gap: 3px; align-items: flex-end; height: 14px; }
+    .equalizer span { width: 3px; height: 100%; border-radius: 2px; background: var(--accent2); animation: eq 1.2s ease-in-out infinite; transform-origin: bottom; }
+    .equalizer span:nth-child(2) { animation-delay: .15s; } .equalizer span:nth-child(3) { animation-delay: .3s; }
+    .equalizer span:nth-child(4) { animation-delay: .45s; } .equalizer span:nth-child(5) { animation-delay: .6s; }
+    @keyframes eq { 0%,100% { transform: scaleY(1); } 50% { transform: scaleY(.3); } }
+
+    .card { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 24px; margin-bottom: 26px; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+    .form-card::before { content: ""; position: absolute; left: 24px; right: 24px; top: -1px; height: 3px; border-radius: 0 0 4px 4px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; }
+    .form-group { display: flex; flex-direction: column; gap: 8px; }
+    .actions { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), #5b8cff); color: #fff; box-shadow: 0 6px 18px rgba(124,92,255,.35); }
+    .btn-primary:hover { box-shadow: 0 8px 24px rgba(124,92,255,.5); }
+    .btn-secondary { background: var(--panel2); color: var(--ink); border-color: var(--line); }
+    .btn-secondary:hover { border-color: var(--accent); }
+    .btn-danger { background: rgba(255,84,112,.12); color: var(--danger); border-color: rgba(255,84,112,.4); }
+    .btn-danger:hover { background: rgba(255,84,112,.22); }
+    .message { min-height: 26px; margin-top: 18px; padding-left: 2px; font-weight: 600; font-size: .92rem; }
+    .message.success { color: var(--ok); }
+    .message.error { color: var(--danger); }
+
+    .dash-stat { position: relative; background: var(--panel2); border: 1px solid var(--line); border-radius: 14px; padding: 16px; text-align: center; color: var(--muted); font-size: .85rem; overflow: hidden; }
+    .dash-stat::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+    .dash-num { font-family: var(--head); font-size: 2.2rem; font-weight: 700; color: #fff; line-height: 1.1; }
+    .card h3 { font-family: var(--head); font-size: 1.2rem; letter-spacing: 1px; text-transform: uppercase; }
+    #notifList li { padding: 10px 12px; border-bottom: 1px solid var(--line); font-size: .92rem; }
+    #notifList li.unread { font-weight: 600; border-left: 3px solid var(--accent); background: rgba(124,92,255,.1); }
+    #notifList small { display: block; color: var(--muted); font-weight: 400; font-size: .78rem; }
+
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+    table { width: 100%; border-collapse: collapse; min-width: 900px; }
+    thead th { background: var(--panel2); color: var(--muted); font-family: var(--head); font-size: .9rem; letter-spacing: 1px; text-transform: uppercase; text-align: left; padding: 13px 14px; border-bottom: 1px solid var(--line); }
+    td { padding: 13px 14px; border-bottom: 1px solid rgba(42,48,85,.7); vertical-align: top; }
+    tbody tr:hover td { background: rgba(124,92,255,.08); }
+    .user-row { animation: rowIn .35s ease both; }
+    .user-row td:first-child { border-left: 3px solid var(--row-accent, var(--accent)); }
+    @keyframes rowIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .center { text-align: center; }
+    .loading { text-align: center; color: var(--muted); padding: 28px 14px; }
+    .action-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .action-group button { padding: 7px 14px; font-size: .9rem; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 999px; background: rgba(46,229,157,.12); color: var(--ok); font-size: .78rem; font-weight: 600; }
+    .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); animation: pulse 1.6s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity: .35; } }
+    .table-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+    .search-box { position: relative; width: min(100%, 380px); }
+    .search-box input { padding-left: 42px; }
+    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 1.15rem; }
+    .pagination { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+    .page-info { color: var(--muted); font-size: .88rem; }
+    .page-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+    .page-btn { background: var(--panel2); color: var(--ink); border-color: var(--line); padding: 7px 13px; }
+    .page-btn.active { background: linear-gradient(135deg, var(--accent), #5b8cff); border-color: transparent; color: #fff; }
+    @media (max-width: 640px) { body { padding: 20px 14px; } .page-header { flex-direction: column; align-items: flex-start; } .card { padding: 16px; } .page-header h2 { font-size: 1.6rem; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
+  </style>
+</head>
+<body>
+  <div class="stage-lights"></div>
+  <div class="container">
+    <div class="page-header">
+      <h2>Tambah User</h2>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <a href="index.html" class="btn-secondary" style="text-decoration:none; padding:12px 20px; display:inline-block;">&larr; Kembali ke Data Users</a>
+      </div>
+    </div>
+
+    <div class="card form-card">
+      <form id="addForm">
+        <div class="form-grid">
+          <div class="form-group"><label for="name">Nama</label><input id="name" type="text" required /></div>
+          <div class="form-group"><label for="nisn">NISN</label><input id="nisn" type="text" required /></div>
+          <div class="form-group"><label for="ttl">TTL</label><input id="ttl" type="text" placeholder="Madiun, 03 Maret 2010" required /></div>
+          <div class="form-group">
+            <label for="gender">Gender</label>
+            <select id="gender" required>
+              <option value="">Pilih gender</option>
+              <option value="Laki-laki">Laki-laki</option>
+              <option value="Perempuan">Perempuan</option>
+            </select>
+          </div>
+          <div class="form-group"><label for="email">Email</label><input id="email" type="email" required /></div>
+          <div class="form-group"><label for="phone">No. Telepon</label><input id="phone" type="tel" inputmode="tel" placeholder="081234567890" required /></div>
+          <div class="form-group" style="grid-column: 1 / -1;"><label for="address">Alamat</label><textarea id="address" required></textarea></div>
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn-primary" id="submitBtn">Simpan User</button>
+          <a href="index.html" class="btn-secondary" style="text-decoration:none; padding:12px 20px; display:inline-block;">Batal</a>
+        </div>
+      </form>
+      <div id="message" class="message" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <script>
+    fetch('api/auth.php?action=me', { credentials: 'same-origin' })
+      .then((r) => r.json())
+      .then((d) => { if (!d.success || d.role !== 'admin') window.location.href = 'index.html'; })
+      .catch(() => { window.location.href = 'index.html'; });
+
+    const apiUrl = 'api/users.php';
+    const form = document.getElementById('addForm');
+    const msg = document.getElementById('message');
+    const btn = document.getElementById('submitBtn');
+
+    function show(text, type) {
+      msg.textContent = text;
+      msg.className = 'message ' + type;
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {};
+      ['name', 'nisn', 'ttl', 'gender', 'email', 'phone', 'address'].forEach((k) => {
+        payload[k] = document.getElementById(k).value.trim();
+      });
+
+      if (Object.values(payload).some((v) => !v)) {
+        show('Semua field harus diisi.', 'error');
+        return;
+      }
+      if (!/^[0-9+\-\s]{8,20}$/.test(payload.phone)) {
+        show('No. telepon tidak valid (8-20 digit angka).', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      try {
+        const res = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (!res.ok || result.success === false) throw new Error(result.message || 'Gagal menambah data.');
+        show('Data berhasil ditambahkan. Mengalihkan...', 'success');
+        form.reset();
+        setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+      } catch (err) {
+        show(err.message, 'error');
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

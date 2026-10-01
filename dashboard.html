@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LAPTOP LAB - Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="app-body">
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-head"><div class="brand-mark"><span class="brand-icon">▣</span><span>LAPTOP <b>LAB</b></span></div><button class="sidebar-close icon-btn" id="sidebarClose">×</button></div>
+      <div class="school-label"><span class="school-logo">SL</span><div><strong>SMK NUSANTARA</strong><small>Laboratorium Komputer</small></div></div>
+      <nav class="sidebar-nav" aria-label="Navigasi utama">
+        <p class="nav-label">MENU UTAMA</p>
+        <button class="nav-item active" data-page="dashboard"><span>⌂</span>Dashboard</button>
+        <button class="nav-item" data-page="laptops"><span>▣</span>Data Laptop</button>
+        <button class="nav-item" data-page="students"><span>♙</span>Data Siswa</button>
+        <button class="nav-item" data-page="borrow"><span>⇥</span>Peminjaman</button>
+        <button class="nav-item" data-page="return"><span>⇤</span>Pengembalian</button>
+        <p class="nav-label nav-gap">AKTIVITAS</p>
+        <button class="nav-item" data-page="history"><span>◷</span>Riwayat</button>
+        <button class="nav-item" data-page="reports"><span>▥</span>Laporan</button>
+        <button class="nav-item" data-page="settings"><span>⚙</span>Pengaturan</button>
+      </nav>
+      <button class="nav-item logout-item" id="logoutBtn"><span>↪</span>Keluar</button>
+      <div class="sidebar-footer"><div class="avatar avatar-red">AD</div><div><strong>Administrator</strong><small>admin@sekolah.id</small></div><span class="status-online"></span></div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <main class="main-content">
+      <header class="topbar"><button class="menu-toggle icon-btn" id="menuToggle">☰</button><div class="breadcrumb"><span>LAPTOP LAB</span><b>/</b><strong id="breadcrumbCurrent">Dashboard</strong></div><div class="topbar-actions"><button class="icon-btn notification-btn" id="notificationBtn" aria-label="Notifikasi">♧<i></i></button><div class="top-profile"><div class="avatar avatar-red">AD</div><div class="profile-name"><strong>Admin</strong><small>Administrator</small></div><span>⌄</span></div></div></header>
+      <div id="pageContent" class="page-content"></div>
+    </main>
+  </div>
+  <div id="modalContainer"></div><div id="toastContainer" class="toast-container"></div>
+  <script src="js/script.js"></script>
+</body>
+</html>
